@@ -1,19 +1,27 @@
 import streamlit as st
+from st_click_detector import click_detector
 import pickle
 import requests
 import os
 from dotenv import load_dotenv
+import os 
 
-API_key = "5fa14b11eb00ababb5cc2307d9ff8266"  
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
-movies = pickle.load(open('_WBS/Movielist/pickle/movielist.sav', 'rb'))
-genres = pickle.load(open('_WBS/Movielist/pickle/genres.sav', 'rb'))
+#API_key = os.getenv('TMDB_Key') 
+API_key = "5fa14b11eb00ababb5cc2307d9ff8266" 
+
+movies = pickle.load(open(f'{dir_path}/pickle/movielist.sav', 'rb'))
+genres = pickle.load(open(f'{dir_path}/pickle/genres.sav', 'rb'))
 maxRatingCount = int(movies["Rating_Count"].max())
+
+def footer():
+    st.write("Hurray! It works!!!")
+    st.write("Finally, human tenacity defeated artificial recalcitrance !!! ")
+
 
 def get_poster_url(tmdbId):
     load_dotenv()
-#    api_key = os.getenv('TMDB_API_KEY')
-#    api_key = "5fa14b11eb00ababb5cc2307d9ff8266"
     response = requests.get(f'https://api.themoviedb.org/3/movie/{tmdbId}?api_key={API_key}')
     data = response.json()
     poster_path = data.get('poster_path')
@@ -38,46 +46,50 @@ def main():
                                 #on_change=updateMovielist, 
                                 key='issue')  
         minRatings = st.slider('Choose minimum of user ratings', 5, maxRatingCount, 10)
-        st.write(minRatings)
-    udml = updateMovielist().sort_values(by="Rating_Mean")[0:5]
-    udml = udml.loc[udml["Rating_Count"] >= minRatings]
-        #st.write(len(udml)) 
+        footer()
+
+
         
-#         p1 = get_poster_url(udml["tmdbId"][0:1])
-# #    p2 = get_poster_url(udml["tmdbId"][1:2])
-# #    p1 = get_poster_url(8844)
-#         p2 = get_poster_url(8844)
-#         p3 = get_poster_url(2756)
-#         p4 = get_poster_url(72867)
-#         p5 = get_poster_url(19913)
-#         col1, col2, col3,col4, col5 = st.columns(5, gap="small")
-#         w = 120
-#         # with col1:
-#         #     st.image(p1,width=w)
-#         # with col2:
-#         #     st.image(p2,width=w)
-#         # with col3:
-#         #     st.image(p3,width=w)        
-#         # with col4:
-#         #     st.image(p4,width=w)    
-#         # with col5:
-#         #     st.image(p5,width=w)    
-#         with col1:
-#             st.write(p1,width=w)
-#         with col2:
-#             st.image(p2,width=w)
-#         with col3:
-#             st.image(p3,width=w)        
-#         with col4:
-#             st.image(p4,width=w)    
-#         with col5:
-#             st.image(p5,width=w)    
+    udml = updateMovielist()    
+    udml = udml.loc[udml["Rating_Count"] >= minRatings].sort_values(by="Rating_Mean",ascending=False)[0:5]
     
-    st.dataframe(udml.sort_values(by="Rating_Mean")[0:5])
-#    st.dataframe(udml)
+    l1 = udml["tmdbId"][0:1].to_list()[0]
+    l2 = udml["tmdbId"][1:2].to_list()[0]
+    l3 = udml["tmdbId"][2:3].to_list()[0]
+    l4 = udml["tmdbId"][3:4].to_list()[0]
+    l5 = udml["tmdbId"][4:5].to_list()[0]
+    
+        
+    def getClickableImage(id):
+        # Displaying the clickable image
+        image_url = get_poster_url(id) 
+        link_url =  f"https://www.themoviedb.org/movie/{id}"
+        clickable_image = f'<a href="{link_url}" target="_blank" rel="noopener noreferrer">' \
+                      f'<img src="{image_url}" alt="Clickable Image" style="width: 75%; max-width: 300px;"></a>'
+        return clickable_image
+
+
+    
+    col1, col2, col3,col4, col5 = st.columns(5, gap="small")
+    w=120
+    with col1:
+        st.markdown(getClickableImage(l1), unsafe_allow_html=True)
+    with col2:
+        st.markdown(getClickableImage(l2), unsafe_allow_html=True)
+    with col3:
+        st.markdown(getClickableImage(l3), unsafe_allow_html=True)
+    with col4:
+        st.markdown(getClickableImage(l4), unsafe_allow_html=True)
+    with col5:
+        st.markdown(getClickableImage(l5), unsafe_allow_html=True)
+    
+    
+    st.dataframe(udml)
         
 
 if __name__ == '__main__':
     main()
-
+  
+ 
     
+
